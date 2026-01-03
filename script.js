@@ -62,12 +62,29 @@ class VisualizationApp {
             // PROXY FIX: Use weserv.nl for HTTPS support and CORS
             const proxyImage = (url) => {
                 if (!url) return url;
-                // Only proxy http URLs or if specifically needed. 
-                // The user provided logic: https://images.weserv.nl/?url= + url without http://
-                if (url.startsWith('http://')) {
-                    return "https://images.weserv.nl/?url=" + url.replace(/^http:\/\//, "");
+
+                let cleanUrl = url.trim();
+
+                // Skip if already proxied or local/data URI
+                if (cleanUrl.includes('weserv.nl') || cleanUrl.startsWith('data:') || cleanUrl.startsWith('blob:')) {
+                    return cleanUrl;
                 }
-                return url;
+
+                // FIX: Force proxy for wwsdw.net even if it is HTTPS (because of cert errors)
+                // Also handles the user's report of "automatically read as https"
+                if (cleanUrl.includes('wwsdw.net')) {
+                    console.log("[Proxy] Redirecting wwsdw.net image:", cleanUrl);
+                    // Strip existing protocol (http or https) and let weserv handle it
+                    const noProtocol = cleanUrl.replace(/^https?:\/\//i, "");
+                    return "https://images.weserv.nl/?url=" + noProtocol;
+                }
+
+                // General HTTP proxying for other domains
+                if (cleanUrl.startsWith('http://')) {
+                    return "https://images.weserv.nl/?url=" + cleanUrl.replace(/^http:\/\//i, "");
+                }
+
+                return cleanUrl;
             };
 
             // Apply proxy to all items
