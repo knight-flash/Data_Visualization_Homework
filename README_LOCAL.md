@@ -22,4 +22,4 @@
 
 ## 常见问题
 - **图片无法加载 (ERR_CERT_COMMON_NAME_INVALID)**:
-  这通常是因为 `wwsdw.net` 的 HTTPS 证书无效。我们已经在代码中添加了自动代理 (images.weserv.nl) 来解决此问题。请确保你的浏览器缓存已清除 (Ctrl + Shift + R 强制刷新)。
+  这通常是因为 `wwsdw.net` 的 HTTPS 证书无效。我们已经在代码中添加了自动代理 (**i0.wp.com**) 来解决此问题。请确保你的浏览器缓存已清除 (Ctrl + Shift + R 强制刷新)。

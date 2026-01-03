@@ -59,32 +59,21 @@ class VisualizationApp {
             this.data = await dataRes.json();
             const shandongGeo = await geoRes.json();
 
-            // PROXY FIX: Use weserv.nl for HTTPS support and CORS
+            // PROXY FIX: Use i0.wp.com (WordPress Photon) for HTTPS support and CORS
             const proxyImage = (url) => {
                 if (!url) return url;
 
                 let cleanUrl = url.trim();
 
                 // Skip if already proxied or local/data URI
-                if (cleanUrl.includes('weserv.nl') || cleanUrl.startsWith('data:') || cleanUrl.startsWith('blob:')) {
+                if (cleanUrl.includes('i0.wp.com') || cleanUrl.startsWith('data:') || cleanUrl.startsWith('blob:')) {
                     return cleanUrl;
                 }
 
-                // FIX: Force proxy for wwsdw.net even if it is HTTPS (because of cert errors)
-                // Also handles the user's report of "automatically read as https"
-                if (cleanUrl.includes('wwsdw.net')) {
-                    console.log("[Proxy] Redirecting wwsdw.net image:", cleanUrl);
-                    // Strip existing protocol (http or https) and let weserv handle it
-                    const noProtocol = cleanUrl.replace(/^https?:\/\//i, "");
-                    return "https://images.weserv.nl/?url=" + noProtocol;
-                }
-
-                // General HTTP proxying for other domains
-                if (cleanUrl.startsWith('http://')) {
-                    return "https://images.weserv.nl/?url=" + cleanUrl.replace(/^http:\/\//i, "");
-                }
-
-                return cleanUrl;
+                // FORCE PROXY: Replace http:// or https:// with https://i0.wp.com/
+                // This forces the image to be loaded via WordPress's global CDN
+                // e.g. http://www.wwsdw.net/img.jpg -> https://i0.wp.com/www.wwsdw.net/img.jpg
+                return cleanUrl.replace(/^https?:\/\//i, "https://i0.wp.com/");
             };
 
             // Apply proxy to all items
