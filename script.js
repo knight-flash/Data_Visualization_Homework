@@ -53,11 +53,33 @@ class VisualizationApp {
         try {
             const [dataRes, geoRes] = await Promise.all([
                 fetch('data.json'),
-                fetch('./370000_full.json')
+                fetch('370000_full.json')
             ]);
 
             this.data = await dataRes.json();
             const shandongGeo = await geoRes.json();
+
+            // PROXY FIX: Use weserv.nl for HTTPS support and CORS
+            const proxyImage = (url) => {
+                if (!url) return url;
+                // Only proxy http URLs or if specifically needed. 
+                // The user provided logic: https://images.weserv.nl/?url= + url without http://
+                if (url.startsWith('http://')) {
+                    return "https://images.weserv.nl/?url=" + url.replace(/^http:\/\//, "");
+                }
+                return url;
+            };
+
+            // Apply proxy to all items
+            if (this.data.all_items) {
+                this.data.all_items.forEach(item => {
+                    item.imgUrl = proxyImage(item.imgUrl);
+                });
+            }
+            // Apply proxy to protagonist
+            if (this.data.protagonist && this.data.protagonist.info) {
+                this.data.protagonist.info.imgUrl = proxyImage(this.data.protagonist.info.imgUrl);
+            }
 
             // PRE-PROCESS: Convert images to Circular Data URLs for Map
             await this.preloadCircularImages();
