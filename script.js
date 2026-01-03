@@ -8,7 +8,7 @@ class VisualizationApp {
         this.chart = null;
         this.sankeyChart = null;
         this.parallelChart = null;
-        
+
         // State
         this.state = {
             mode: 'story', // 'story' or 'explore'
@@ -28,7 +28,7 @@ class VisualizationApp {
             bg: '#f5f5f0',
             heatmap: ['#efebe9', '#d7ccc8', '#a1887f', '#8d6e63', '#5d4037', '#3e2723']
         };
-        
+
         this.cityCoords = {
             "济南市": [117.000923, 36.675807],
             "青岛市": [120.355173, 36.082982],
@@ -53,19 +53,19 @@ class VisualizationApp {
         try {
             const [dataRes, geoRes] = await Promise.all([
                 fetch('data.json'),
-                fetch('https://geo.datav.aliyun.com/areas_v3/bound/370000_full.json')
+                fetch('370000_full.json')
             ]);
-            
+
             this.data = await dataRes.json();
             const shandongGeo = await geoRes.json();
-            
+
             // PRE-PROCESS: Convert images to Circular Data URLs for Map
             await this.preloadCircularImages();
 
             echarts.registerMap('shandong', shandongGeo);
-            
+
             this.chart = echarts.init(document.getElementById('map'));
-            
+
             // Map Events
             this.chart.on('click', (params) => {
                 if (params.componentType === 'series') {
@@ -79,7 +79,7 @@ class VisualizationApp {
             this.renderFilters();
             this.renderMap();
             this.renderGallery();
-            
+
             // Story Mode Setup
             this.initStoryMode();
 
@@ -119,19 +119,19 @@ class VisualizationApp {
                 canvas.width = size;
                 canvas.height = size;
                 const ctx = canvas.getContext('2d');
-                
+
                 // Draw Circle Clip
                 ctx.beginPath();
-                ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+                ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
                 ctx.closePath();
                 ctx.clip();
-                
+
                 // Draw Image centered
-                ctx.drawImage(img, (img.width-size)/2, (img.height-size)/2, size, size, 0, 0, size, size);
-                
+                ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, size, size);
+
                 // Add a border (optional, fits the theme)
                 ctx.beginPath();
-                ctx.arc(size/2, size/2, size/2 - 2, 0, Math.PI * 2);
+                ctx.arc(size / 2, size / 2, size / 2 - 2, 0, Math.PI * 2);
                 ctx.strokeStyle = '#8d6e63';
                 ctx.lineWidth = size * 0.05; // 5% border
                 ctx.stroke();
@@ -150,13 +150,13 @@ class VisualizationApp {
         document.getElementById('story-protagonist-name').innerText = p.name;
         document.getElementById('story-protagonist-img').src = p.imgUrl;
         document.getElementById('story-protagonist-desc').innerText = p.description || "暂无描述";
-        
+
         document.getElementById('story-family-count').innerText = this.data.city_details[p.city] ? this.data.city_details[p.city].total_count : '-';
         document.getElementById('story-family-city').innerText = p.city;
 
         const scroller = document.getElementById('story-scroller');
         const sections = document.querySelectorAll('.story-section');
-        
+
         scroller.addEventListener('scroll', () => {
             sections.forEach(section => {
                 const rect = section.getBoundingClientRect();
@@ -171,7 +171,7 @@ class VisualizationApp {
     updateStoryStep(step) {
         if (this.state.mode !== 'story') return;
 
-        switch(step) {
+        switch (step) {
             case 1: // Intro
                 this.chart.setOption({ geo: { zoom: 1.1, center: null } });
                 break;
@@ -190,7 +190,7 @@ class VisualizationApp {
 
     enterExploreMode() {
         this.state.mode = 'explore';
-        
+
         const storyOverlay = document.getElementById('story-overlay');
         storyOverlay.style.opacity = '0';
         setTimeout(() => storyOverlay.style.display = 'none', 1000);
@@ -209,7 +209,7 @@ class VisualizationApp {
     }
 
     updateTimeline(val) {
-        const labels = ['all', '大汶口', '龙山']; 
+        const labels = ['all', '大汶口', '龙山'];
         this.state.timelineEra = labels[val] === 'all' ? 'all' : labels[val];
         this.state.activeItem = null; // Clear selection when time traveling
         this.renderMap();
@@ -218,7 +218,7 @@ class VisualizationApp {
     }
 
     // --- Logic: Analytics ---
-    
+
     toggleAnalytics() {
         this.state.showAnalytics = !this.state.showAnalytics;
         const panel = document.getElementById('analytics-panel');
@@ -228,7 +228,7 @@ class VisualizationApp {
             // Wait for transition to complete so containers have width/height
             setTimeout(() => {
                 this.updateAnalytics();
-            }, 750); 
+            }, 750);
         } else {
             panel.classList.remove('h-[400px]');
             panel.classList.add('h-0');
@@ -257,7 +257,7 @@ class VisualizationApp {
     renderSankey() {
         const container = document.getElementById('chart-sankey');
         if (!container) return;
-        
+
         // Ensure container has height
         if (container.clientHeight === 0) {
             container.style.height = '100%';
@@ -265,10 +265,10 @@ class VisualizationApp {
 
         if (!this.sankeyChart) this.sankeyChart = echarts.init(container);
         this.sankeyChart.resize(); // Resize immediately to be safe
-        
+
         // Construct 3-Level Sankey Data: Era -> City -> Shape
         const items = this.data.all_items;
-        
+
         // Use a map to track unique nodes and their categories to avoid name collisions
         // Format: "Category:Name"
         const nodes = new Set();
@@ -303,8 +303,8 @@ class VisualizationApp {
         });
 
         const option = {
-            tooltip: { 
-                trigger: 'item', 
+            tooltip: {
+                trigger: 'item',
                 triggerOn: 'mousemove',
                 formatter: (params) => {
                     if (params.dataType === 'node') {
@@ -322,9 +322,9 @@ class VisualizationApp {
                 emphasis: { focus: 'adjacency' },
                 lineStyle: { color: 'source', curveness: 0.5 },
                 itemStyle: { color: '#8d6e63', borderColor: '#5d4037' },
-                label: { 
-                    color: '#5d4037', 
-                    fontSize: 10, 
+                label: {
+                    color: '#5d4037',
+                    fontSize: 10,
                     fontWeight: 'bold',
                     formatter: (params) => params.data.value // Show clean name
                 },
@@ -338,8 +338,8 @@ class VisualizationApp {
     renderParallel() {
         const container = document.getElementById('chart-parallel');
         if (!container) return;
-        
-         // Ensure container has height
+
+        // Ensure container has height
         if (container.clientHeight === 0) {
             container.style.height = '100%';
         }
@@ -351,7 +351,7 @@ class VisualizationApp {
         // Dimensions: Era (Categorical), Shape (Categorical), Popularity (Numerical)
         const eras = ['大汶口文化', '龙山文化', '岳石文化', '新石器时代(通用)', '其他'];
         const shapes = this.data.dimensions.shapes;
-        
+
         const data = this.data.all_items.map(item => {
             const era = this.getEra(item);
             return [
@@ -385,7 +385,7 @@ class VisualizationApp {
     renderFilters() {
         const container = document.getElementById('shape-filters');
         const shapes = ['all', ...this.data.dimensions.shapes];
-        
+
         container.innerHTML = shapes.map(shape => `
             <button 
                 class="px-4 py-1.5 text-xs font-bold rounded-full border transition transform hover:scale-105 ${this.state.filterShape === shape ? 'bg-[#8d6e63] text-white border-[#8d6e63] shadow-md' : 'bg-white text-[#5d4037] border-[#d7ccc8] hover:bg-[#efebe9]'}"
@@ -406,10 +406,10 @@ class VisualizationApp {
 
     setMapMode(mode) {
         this.state.mapMode = mode;
-        
+
         const btnCount = document.getElementById('btn-mode-count');
         const btnClicks = document.getElementById('btn-mode-clicks');
-        
+
         const activeClass = "flex-1 py-2 text-sm font-bold rounded-md shadow-sm bg-white text-[#5d4037] transition";
         const inactiveClass = "flex-1 py-2 text-sm font-bold rounded-md text-stone-500 hover:text-[#5d4037] transition";
 
@@ -428,11 +428,11 @@ class VisualizationApp {
 
     renderMap() {
         let items = this.data.all_items;
-        
+
         if (this.state.filterShape !== 'all') {
             items = items.filter(i => i.shape_type === this.state.filterShape);
         }
-        
+
         if (this.state.timelineEra !== 'all') {
             items = items.filter(i => i.yearName && i.yearName.includes(this.state.timelineEra));
         }
@@ -447,10 +447,10 @@ class VisualizationApp {
         const scatterData = displayItems.map(item => {
             const baseCoords = this.cityCoords[item.city];
             if (!baseCoords) return null;
-            
+
             const lng = baseCoords[0] + (Math.random() - 0.5) * 0.4;
             const lat = baseCoords[1] + (Math.random() - 0.5) * 0.3;
-            
+
             return {
                 name: item.name,
                 value: [lng, lat],
@@ -483,12 +483,12 @@ class VisualizationApp {
             const val = this.state.mapMode === 'count' ? 1 : i.clickCounts;
             cityCounts[i.city] = (cityCounts[i.city] || 0) + val;
         });
-        
+
         const heatmapData = Object.keys(this.cityCoords).map(city => ({
             name: city,
             value: cityCounts[city] || 0
         }));
-        
+
         const maxVal = Math.max(...heatmapData.map(d => d.value), 1);
 
         const option = {
@@ -569,7 +569,7 @@ class VisualizationApp {
         let items = this.data.all_items;
         if (this.state.filterShape !== 'all') items = items.filter(i => i.shape_type === this.state.filterShape);
         if (this.state.timelineEra !== 'all') items = items.filter(i => i.yearName && i.yearName.includes(this.state.timelineEra));
-        
+
         document.getElementById('list-count').innerText = items.length;
         document.getElementById('gallery-list').innerHTML = items.map(item => `
             <div class="cursor-pointer group flex flex-col items-center p-3 rounded-lg hover:bg-[#efebe9] transition ${this.state.activeItem && this.state.activeItem.name === item.name ? 'bg-[#efebe9] ring-2 ring-[#8d6e63]' : ''}"
