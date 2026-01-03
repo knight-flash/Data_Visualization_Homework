@@ -53,7 +53,7 @@ class VisualizationApp {
         try {
             const [dataRes, geoRes] = await Promise.all([
                 fetch('data.json'),
-                fetch('370000_full.json')
+                fetch('./370000_full.json')
             ]);
 
             this.data = await dataRes.json();
